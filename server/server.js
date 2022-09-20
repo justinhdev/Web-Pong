@@ -9,11 +9,6 @@ var spot;
 io.on("connection", (socket) => {
   index.push(socket.id);
   io.emit("getIndex", index);
-  io.emit("getHeading", randomNumberBetween(0, 2 * Math.PI));
-
-  socket.on("getHeading-send", () => {
-    io.emit("getHeading", randomNumberBetween(0, 2 * Math.PI));
-  });
 
   socket.on("startGame-send", () => {
     io.emit("startGame-recieve");
@@ -43,7 +38,3 @@ io.on("connection", (socket) => {
     io.emit("getIndex", index);
   });
 });
-
-function randomNumberBetween(min, max) {
-  return Math.random() * (max - min) + min;
-}
