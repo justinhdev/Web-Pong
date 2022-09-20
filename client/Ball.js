@@ -2,7 +2,8 @@ const INITIAL_VELOCITY = 0.025;
 const VELOCITY_INCREASE = 0.00001;
 
 export default class Ball {
-  constructor(ballElem) {
+  constructor(ballElem, heading) {
+    this.heading = heading;
     this.ballElem = ballElem;
     this.reset();
   }
@@ -27,7 +28,7 @@ export default class Ball {
     return this.ballElem.getBoundingClientRect();
   }
 
-  reset() {
+  reset(heading) {
     this.x = 50;
     this.y = 50;
     this.direction = { x: 0 };
@@ -35,7 +36,7 @@ export default class Ball {
       Math.abs(this.direction.x) <= 0.2 ||
       Math.abs(this.direction.x) >= 0.9
     ) {
-      const heading = randomNumberBetween(0, 2 * Math.PI);
+      //const heading = randomNumberBetween(0, 2 * Math.PI);
       this.direction = { x: Math.cos(heading), y: Math.sin(heading) };
     }
     this.velocity = INITIAL_VELOCITY;
