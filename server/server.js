@@ -6,6 +6,7 @@ const io = require("socket.io")(3000, {
 
 var index = new Array();
 var spot;
+
 io.on("connection", (socket) => {
   index.push(socket.id);
   io.emit("getIndex", index);
@@ -25,16 +26,42 @@ io.on("connection", (socket) => {
   socket.on("ballUpdate-send", (rect1) => {
     io.emit("ballUpdate-recieve", rect1);
   });
+
   socket.on("delta-send", (deltaSend) => {
     io.emit("delta-recieve", deltaSend);
   });
   socket.on("gameOver-send", () => {
-    io.emit("gameOver-recieve");
+    socket.emit("gameOver-recieve");
+  });
+  socket.on("getHeading", () => {
+    var test = 0;
+    while (
+      Math.abs(test) <= 0.2 ||
+      Math.abs(test) >= 0.9
+    ) {
+      var heading = randomNumberBetween(0, 2 * Math.PI)
+      test = Math.cos(heading);
+    }
+    io.emit("getHeading-send", heading);
   });
   socket.on("disconnect", () => {
-    console.log("disconnected");
     spot = index.indexOf(socket.id);
     index.splice(spot, 1);
     io.emit("getIndex", index);
   });
+  socket.on("playerpaddle", (rect) => {
+    io.emit("playerpaddle-recieve", (rect));
+  });
+  socket.on("computerpaddle", (rect) => {
+    io.emit("computerpaddle-recieve", (rect));
+  });
 });
+
+function randomNumberBetween(min, max) {
+  return Math.random() * (max - min) + min;
+}
+    //socket.emit("frame-send");
+    //socket.on("frame-recieve", () => {
+      //console.log("reaching frame");
+      //requestAnimationFrame(update);
+    //});

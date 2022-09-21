@@ -2,7 +2,8 @@ const socket = io("http://localhost:3000");
 
 const INITIAL_VELOCITY = 0.025;
 const VELOCITY_INCREASE = 0.00001;
-const SPEED = .01
+const SPEED = 0.01;
+const BODYRECT = document.body.getBoundingClientRect();
 
 class Ball {
   constructor(ballElem) {
@@ -31,65 +32,60 @@ class Ball {
   }
 
   reset() {
-    this.x = 50;
-    this.y = 50;
-    this.direction = { x: 0 };
-    while (
-      Math.abs(this.direction.x) <= 0.2 ||
-      Math.abs(this.direction.x) >= 0.9
-    ) {
-      const heading = randomNumberBetween(0, 2 * Math.PI);
+    var heading;
+    socket.emit("getHeading");
+    socket.on("getHeading-send", (head) => {
+      heading = head;
+      this.x = 50;
+      this.y = 50;
+      this.direction = { x: 0 };
       this.direction = { x: Math.cos(heading), y: Math.sin(heading) };
-    }
-    this.velocity = INITIAL_VELOCITY;
+      this.velocity = INITIAL_VELOCITY;
+    });
   }
-
   update(delta, paddleRects) {
     this.x += this.direction.x * this.velocity * delta;
     this.y += this.direction.y * this.velocity * delta;
     this.velocity += VELOCITY_INCREASE * delta;
     const rect = this.rect();
-
-    if (rect.bottom >= window.innerHeight || rect.top <= 0) {
+    if (rect.bottom >= BODYRECT.bottom || rect.top <= BODYRECT.top) {
       this.direction.y *= -1;
     }
-    if (paddleRects.some(r => isCollision(r, rect))) {
+    if (paddleRects.some((r) => isCollision(r, rect))) {
       this.direction.x *= -1;
+      collisionTimeLag();
     }
   }
 }
 
 class Paddle {
   constructor(paddleElem) {
-      this.paddleElem = paddleElem
-      this.reset()
+    this.paddleElem = paddleElem;
+    this.reset();
   }
 
   get position() {
-      return parseFloat(getComputedStyle(this.paddleElem).getPropertyValue("--position"));
+    return parseFloat(
+      getComputedStyle(this.paddleElem).getPropertyValue("--position")
+    );
   }
 
   set position(value) {
-      this.paddleElem.style.setProperty("--position", value);
+    this.paddleElem.style.setProperty("--position", value);
   }
 
   rect() {
-      return this.paddleElem.getBoundingClientRect()
+    return this.paddleElem.getBoundingClientRect();
   }
 
   reset() {
-      this.position = 50;
+    this.position = 50;
   }
 
   update(delta, ballHeight) {
-      this.position += SPEED * delta * (ballHeight - this.position);
+    this.position += SPEED * delta * (ballHeight - this.position);
   }
 }
-
-
-
-
-
 const ball = new Ball(document.getElementById("ball"));
 const playerPaddle = new Paddle(document.getElementById("player-paddle"));
 const computerPaddle = new Paddle(document.getElementById("computer-paddle"));
@@ -105,8 +101,8 @@ var index = 0;
 socket.on("getIndex", (index) => {
   playernum = index[0];
 });
-
 socket.on("startGame-recieve", () => {
+  socket.emit("getHeading");
   startGame();
 });
 socket.on("mousePosition-recieve1", (mousePos) => {
@@ -118,6 +114,7 @@ socket.on("mousePosition-recieve2", (mousePos) => {
 socket.on("ballUpdate-recieve", (rect) => {
   newRect = rect;
 });
+
 socket.on("delta-recieve", (deltaSend) => {
   delta = deltaSend;
 });
@@ -129,8 +126,8 @@ btn.addEventListener("click", () => {
   socket.emit("startGame-send");
 });
 
-document.addEventListener("mousemove", (e) => {
-  var mousePos = (e.y / window.innerHeight) * 100;
+document.body.addEventListener("mousemove", (e) => {
+  var mousePos = (e.y / BODYRECT.height) * 100;
   if (playernum == socket.id) {
     socket.emit("mousePosition-send1", mousePos);
   } else {
@@ -141,14 +138,14 @@ document.addEventListener("mousemove", (e) => {
 function startGame() {
   btn.style.display = "none";
   btnmulti.style.display = "none";
-  ball.reset();
   start = true;
+  ball.reset();
+  playerScoreElem.textContent = 0;
+  computerScoreElem.textContent = 0;
 }
 
 let lastTime;
 function update(time) {
-  index++;
-  console.log(index);
   requestAnimationFrame(update);
 
   if (lastTime != null) {
@@ -166,12 +163,9 @@ function update(time) {
     if (start == true) {
       socket.emit("ballUpdate-send", [rect1, rect2]);
       ball.update(delta, newRect);
-      playerScoreElem.textContent = 0;
-      computerScoreElem.textContent = 0;
     }
     if (isLose()) {
       socket.emit("gameOver-send");
-      handleLose();
     }
   }
   lastTime = time;
@@ -179,21 +173,21 @@ function update(time) {
 
 function isLose() {
   const rect = ball.rect();
-  return rect.right >= window.innerWidth || rect.left <= 0;
+  return rect.right >= BODYRECT.right || rect.left <= BODYRECT.left;
 }
 
 function handleLose() {
   const rect = ball.rect();
-  if (rect.right >= window.innerWidth) {
+  if (rect.right >= BODYRECT.right) {
     playerScoreElem.textContent = parseInt(playerScoreElem.textContent) + 1;
   } else {
     computerScoreElem.textContent = parseInt(computerScoreElem.textContent) + 1;
   }
 
   ball.reset();
-  if (playerScoreElem.textContent == 1 || computerScoreElem.textContent == 1) {
-    start = false;
+  if (playerScoreElem.textContent == 2 || computerScoreElem.textContent == 2) {
     btn.style.display = "block";
+    start = false;
   }
 }
 
@@ -203,11 +197,17 @@ function randomNumberBetween(min, max) {
 
 function isCollision(rect1, rect2) {
   return (
-    rect1.left <= rect2.right &&
-    rect1.right >= rect2.left &&
-    rect1.top <= rect2.bottom &&
-    rect1.bottom >= rect2.top
-  )
+    rect1.x <= rect2.x + rect2.width &&
+    rect1.x + rect1.width >= rect2.x &&
+    rect1.y <= rect2.y + rect2.height &&
+    rect1.height + rect1.y >= rect2.y
+  );
 }
 
+function collisionTimeLag() {
+  var activated = false;
+  setTimeout(() => {
+    activated = true;
+  }, 1000);
+}
 update();

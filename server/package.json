@@ -2,5 +2,4 @@
   "dependencies": {
     "socket.io": "^4.5.2"
   }
-  
 }
