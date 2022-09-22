@@ -1,6 +1,6 @@
 //const socket = io("http://localhost:3000");
 
-var socket = io('https://web-pong.herokuapp.com/');
+var socket = io('http://localhost:3000');
 
 
 const INITIAL_VELOCITY = 0.025;

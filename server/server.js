@@ -6,21 +6,24 @@
 const express = require('express');
 const app = express();
 const http = require('http');
-const cors = require('cors');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://127.0.0.1:5501"
+  }
+});
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static('public'));
-app.use(cors());
+//app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.send("server is up");
 });
-app.get('/client/script.js', (req, res) => {
+
+/*app.get('/client/script.js', (req, res) => {
   res.sendFile('/home/huginn/code/online-pong/client/script.js');
-});
+});*/
 
 server.listen(PORT, () => {
   
