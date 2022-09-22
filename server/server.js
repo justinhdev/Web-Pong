@@ -1,7 +1,29 @@
-const io = require("socket.io")(3000, {
+/*const io = require("socket.io")(process.env.PORT, {
   cors: {
     origin: ["http://127.0.0.1:5501"],
   },
+});*/
+const express = require('express');
+const app = express();
+const http = require('http');
+const cors = require('cors');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+const PORT = process.env.PORT || 3000;
+
+app.use(express.static('public'));
+app.use(cors());
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+app.get('/client/script.js', (req, res) => {
+  res.sendFile('/home/huginn/code/online-pong/client/script.js');
+});
+
+server.listen(PORT, () => {
+  
 });
 
 var index = new Array();
@@ -60,8 +82,3 @@ io.on("connection", (socket) => {
 function randomNumberBetween(min, max) {
   return Math.random() * (max - min) + min;
 }
-    //socket.emit("frame-send");
-    //socket.on("frame-recieve", () => {
-      //console.log("reaching frame");
-      //requestAnimationFrame(update);
-    //});

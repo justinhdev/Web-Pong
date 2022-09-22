@@ -1,4 +1,7 @@
-const socket = io("http://localhost:3000");
+//const socket = io("http://localhost:3000");
+
+var socket = io(/*'https://web-pong.herokuapp.com/'*/);
+
 
 const INITIAL_VELOCITY = 0.025;
 const VELOCITY_INCREASE = 0.00001;
@@ -147,7 +150,6 @@ function startGame() {
 let lastTime;
 function update(time) {
   requestAnimationFrame(update);
-
   if (lastTime != null) {
     if (playernum == socket.id) {
       const deltaSend = time - lastTime;

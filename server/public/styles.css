@@ -10,17 +10,13 @@ html {
   --saturation: 50%;
   --foreground-color: hsl(var(--hue), var(--saturation), 75%);
   --background-color: hsl(var(--hue), var(--saturation), 20%);
-  height: 940px;
-  width: 1200px;
 }
-.vertical {
-  position: relative;
-}
+
 body {
+  
   background-color: var(--background-color);
   overflow: hidden;
   position: absolute;
-
   height: 940px;
   width: 1200px;
 }
