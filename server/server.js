@@ -5,12 +5,6 @@
 });*/
 const express = require('express');
 const app = express();
-const cors = require('cors');
-
-app.use(cors({
-  origin: "https://web-2pong.netlify.app"
-}));
-
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
