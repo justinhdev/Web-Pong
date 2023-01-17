@@ -10,6 +10,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
+    
     origin: "https://web-2pong.netlify.app"
   }
 });
@@ -30,7 +31,7 @@ var rdycount = 0;
 var rdycount2 = 0;
 
 io.on("connection", (socket) => {
-  console.log("connected");
+  
   index.push(socket.id);
   io.emit("getIndex", index);
 
